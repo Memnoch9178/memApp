@@ -1,6 +1,45 @@
 import sys
 import os
 import traceback
+import json
+
+class ExceptionFormatter:
+    """
+    Formateur universel pour exceptions, selon la cible d’affichage.
+    """
+    LEVEL_STYLES = {
+        'info': {'ansi': '\033[94m', 'html': 'color:blue;', 'emoji': 'ℹ️'},
+        'warning': {'ansi': '\033[93m', 'html': 'color:orange;', 'emoji': '⚠️'},
+        'error': {'ansi': '\033[91m', 'html': 'color:red;', 'emoji': '❌'},
+        'critical': {'ansi': '\033[41m', 'html': 'background:red;color:white;', 'emoji': '🔥'},
+        'success': {'ansi': '\033[92m', 'html': 'color:green;', 'emoji': '✅'},
+    }
+    ANSI_RESET = '\033[0m'
+    CUSTOM_TEMPLATES = {}
+
+    @classmethod
+    def register_template(cls, name, func):
+        """Enregistre un template personnalisé (func: (message, **kwargs) -> str)."""
+        cls.CUSTOM_TEMPLATES[name] = func
+
+    @classmethod
+    def format(cls, message, level='error', target='plain', template=None, title=None, details=None):
+        style = cls.LEVEL_STYLES.get(level, cls.LEVEL_STYLES['error'])
+        if template and template in cls.CUSTOM_TEMPLATES:
+            return cls.CUSTOM_TEMPLATES[template](message, level=level, target=target, title=title, details=details)
+        if target == 'plain':
+            return f"{style['emoji']} {title+': ' if title else ''}{message}"
+        if target == 'terminal':
+            return f"{style['ansi']}{title+': ' if title else ''}{message}{cls.ANSI_RESET}"
+        if target == 'html':
+            return f"<div style='{style['html']}'><strong>{title if title else ''}</strong> {message}</div>"
+        if target == 'markdown':
+            return f"**{title if title else ''}** {message}"
+        if target == 'json':
+            return json.dumps({'level': level, 'title': title, 'message': message, 'details': details})
+        if target == 'rich':
+            return f"[bold {level}]{title+': ' if title else ''}{message}[/bold {level}]"
+        return message
 
 class MemAppException(Exception):
     """
@@ -24,12 +63,11 @@ class MemAppException(Exception):
             return 'cli'
         return 'unknown'
 
-    def format_message(self):
-        if self.fmt == 'html':
-            return f"<div class='error'>{self.message}</div>"
-        elif self.fmt == 'rich':
-            return f"[bold red]Erreur:[/bold red] {self.message}"
-        return self.message
+    def format_message(self, target=None, level=None, template=None, title=None, details=None):
+        level = level or getattr(self, 'level', 'error')
+        target = target or self.fmt
+        title = title or self.__class__.__name__
+        return ExceptionFormatter.format(self.message, level=level, target=target, template=template, title=title, details=details)
 
     def __str__(self):
         return self.format_message()
@@ -58,3 +96,8 @@ def raise_contextual_exception(exc_class, message=None, fmt=None, **kwargs):
 
 # Utilisation possible :
 # raise_contextual_exception(ConfigException, "Fichier de config introuvable", fmt='html')
+
+# Exemple d’enregistrement d’un template personnalisé
+# def my_template(msg, **kwargs):
+#     return f"*** {kwargs.get('title', '')} ***\n{msg}\n---"
+# ExceptionFormatter.register_template('starred', my_template)
