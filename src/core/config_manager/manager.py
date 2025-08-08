@@ -1,40 +1,55 @@
 import os
 import yaml
-from .defaults import get_defaults
-from .schemas import get_schema
-from .config_merge import ConfigMerge
-from .config_reload import ConfigReload
-from .config_validation import ConfigValidation
+from .validation import ConfigValidation
+from .merge import ConfigMerge
+from .reload import ConfigReload
+from ..defaults import get_defaults
+from ..schemas import get_schema
+from core.exceptions import ConfigException
 from typing import Dict, Any
 
-CONFIG_DIR = os.path.join(os.path.dirname(__file__), '../config')
+CONFIG_DIR = os.path.join(os.path.dirname(__file__), '../../config')
 CONFIG_FULL_PATH = os.path.join(CONFIG_DIR, 'config_full.yml')
 
 class ConfigManager:
+    """
+    Gestionnaire centralisé des configurations.
+    - Fusionne tous les fichiers config.yml de src/config/*/
+    - Exclut config_full.yml
+    - Met à jour et lit le fichier fusionné
+    - Permet la gestion fine des arguments et sections
+    """
     @staticmethod
-<<<<<<< HEAD
-=======
     def validate_config(config: dict, schema: dict) -> bool:
-        """Valide la configuration selon le schéma Cerberus."""
+        """
+        Valide la configuration selon le schéma Cerberus.
+        Args:
+            config (dict): Configuration à valider.
+            schema (dict): Schéma Cerberus.
+        Returns:
+            bool: True si valide, False sinon.
+        """
         return ConfigValidation.validate_config(config, schema)
 
     @staticmethod
     def get_config(service: str = None, section: str = None, keys: list = None, multi_sections: list = None, with_section: bool = True, defaults: dict = None) -> dict:
         """
-        Restitue la configuration selon les options :
-        - service : nom du service/module
-        - section : section à extraire
-        - keys : liste d'arguments à extraire
-        - multi_sections : liste de sections à extraire
-        - with_section : inclure la section racine ou non
-        - defaults : valeurs par défaut à appliquer si manquantes
+        Restitue la configuration selon les options.
+        Args:
+            service (str): Nom du service/module.
+            section (str): Section à extraire.
+            keys (list): Liste d'arguments à extraire.
+            multi_sections (list): Liste de sections à extraire.
+            with_section (bool): Inclure la section racine ou non.
+            defaults (dict): Valeurs par défaut à appliquer si manquantes.
+        Returns:
+            dict: Configuration extraite.
         """
         config = {}
         if service:
             config = ConfigManager.get_service_config(service)
         else:
             config = ConfigManager.get_full_config()
-        # Substitution des variables d'environnement
         def substitute_env(val):
             if isinstance(val, str) and val.startswith('$'):
                 return os.environ.get(val[1:], val)
@@ -47,10 +62,8 @@ class ConfigManager:
             else:
                 return substitute_env(d)
         config = recursive_substitute(config)
-        # Application des valeurs par défaut
         if defaults:
-            config = ConfigManager._deep_merge_dicts(defaults, config)
-        # Extraction selon options
+            config = ConfigMerge.deep_merge_dicts(defaults, config)
         if multi_sections:
             result = {s: config.get(s, {}) for s in multi_sections}
             if keys:
@@ -73,12 +86,22 @@ class ConfigManager:
 
     @staticmethod
     def reload_on_change(callback=None):
-        """Surveillance dynamique via ConfigReload."""
+        """
+        Active la surveillance dynamique des fichiers de configuration.
+        Args:
+            callback (callable): Fonction à appeler en cas de modification.
+        """
         ConfigReload.reload_on_change(callback)
+
     @staticmethod
->>>>>>> 358b958 (	modified:   src/core/config_manager.py)
     def get_service_config(service: str) -> Dict[str, Any]:
-        """Retourne la configuration d'un service/module spécifique."""
+        """
+        Retourne la configuration d'un service/module spécifique.
+        Args:
+            service (str): Nom du service/module.
+        Returns:
+            dict: Configuration du service.
+        """
         path = os.path.join(CONFIG_DIR, service, 'config.yml')
         if not os.path.exists(path):
             return {}
@@ -86,49 +109,50 @@ class ConfigManager:
             with open(path, 'r', encoding='utf-8') as f:
                 return yaml.safe_load(f) or {}
         except Exception as e:
-            print(f"Erreur lecture config {service}: {e}")
-            return {}
+            raise ConfigException(f"Erreur lecture config {service}: {e}")
 
     @staticmethod
     def set_service_config_arg(service: str, section: str, key: str, value: Any) -> bool:
-<<<<<<< HEAD
-        """Ajoute ou modifie un argument dans une section du fichier config individuel."""
-        path = os.path.join(CONFIG_DIR, service, 'config.yml')
-        config = ConfigManager.get_service_config(service)
-        if section not in config:
-            config[section] = {}
-        config[section][key] = value
-=======
-        """Ajoute ou modifie un argument dans une section du fichier config individuel, avec validation et valeurs par défaut."""
+        """
+        Ajoute ou modifie un argument dans une section du fichier config individuel, avec validation et valeurs par défaut.
+        Args:
+            service (str): Nom du service/module.
+            section (str): Section concernée.
+            key (str): Clé à modifier.
+            value (Any): Valeur à affecter.
+        Returns:
+            bool: True si succès, False sinon.
+        """
         path = os.path.join(CONFIG_DIR, service, 'config.yml')
         config = ConfigManager.get_service_config(service)
         defaults = get_defaults(service)
         schema = get_schema(service)
-        # Appliquer valeur par défaut si section absente
         if section not in config:
             config[section] = defaults.get(section, {})
         config[section][key] = value
-        # Validation
         valid = True
         if section in schema:
-            from cerberus import Validator
-            v = Validator({key: schema[section].get(key, {})})
-            valid = v.validate({key: value})
+            valid = ConfigValidation.validate_config({key: value}, {key: schema[section].get(key, {})})
         if not valid:
-            print(f"Validation échouée pour {service}.{section}.{key}: {value}")
-            return False
->>>>>>> 358b958 (	modified:   src/core/config_manager.py)
+            raise ConfigException(f"Validation échouée pour {service}.{section}.{key}: {value}")
         try:
             with open(path, 'w', encoding='utf-8') as f:
                 yaml.safe_dump(config, f)
             return True
         except Exception as e:
-            print(f"Erreur écriture config {service}: {e}")
-            return False
+            raise ConfigException(f"Erreur écriture config {service}: {e}")
 
     @staticmethod
     def delete_service_config_arg(service: str, section: str, key: str) -> bool:
-        """Supprime un argument d'une section du fichier config individuel."""
+        """
+        Supprime un argument d'une section du fichier config individuel.
+        Args:
+            service (str): Nom du service/module.
+            section (str): Section concernée.
+            key (str): Clé à supprimer.
+        Returns:
+            bool: True si succès, False sinon.
+        """
         path = os.path.join(CONFIG_DIR, service, 'config.yml')
         config = ConfigManager.get_service_config(service)
         if section in config and key in config[section]:
@@ -138,13 +162,19 @@ class ConfigManager:
                     yaml.safe_dump(config, f)
                 return True
             except Exception as e:
-                print(f"Erreur écriture config {service}: {e}")
-                return False
+                raise ConfigException(f"Erreur écriture config {service}: {e}")
         return False
 
     @staticmethod
     def delete_service_config_section(service: str, section: str) -> bool:
-        """Supprime une section entière du fichier config individuel."""
+        """
+        Supprime une section entière du fichier config individuel.
+        Args:
+            service (str): Nom du service/module.
+            section (str): Section à supprimer.
+        Returns:
+            bool: True si succès, False sinon.
+        """
         path = os.path.join(CONFIG_DIR, service, 'config.yml')
         config = ConfigManager.get_service_config(service)
         if section in config:
@@ -154,30 +184,31 @@ class ConfigManager:
                     yaml.safe_dump(config, f)
                 return True
             except Exception as e:
-                print(f"Erreur écriture config {service}: {e}")
-                return False
+                raise ConfigException(f"Erreur écriture config {service}: {e}")
         return False
-    """
-    Gestionnaire centralisé des configurations.
-    - Fusionne tous les fichiers config.yml de src/config/*/
-    - Exclut config_full.yml
-    - Met à jour et lit le fichier fusionné
-    """
+
     @staticmethod
     def _find_config_files() -> list:
+        """Retourne la liste des fichiers de configuration individuels."""
         return ConfigMerge.find_config_files()
 
     @staticmethod
     def _deep_merge_dicts(a: Dict[str, Any], b: Dict[str, Any]) -> Dict[str, Any]:
+        """Fusion profonde de deux dictionnaires."""
         return ConfigMerge.deep_merge_dicts(a, b)
 
     @staticmethod
     def merge_configs() -> Dict[str, Any]:
+        """Fusionne toutes les configurations individuelles."""
         return ConfigMerge.merge_configs()
 
     @staticmethod
     def update_full_config() -> bool:
-        """Écrit le fichier de configuration fusionné sur le disque."""
+        """
+        Écrit le fichier de configuration fusionné sur le disque.
+        Returns:
+            bool: True si succès, False sinon.
+        """
         merged = ConfigManager.merge_configs()
         try:
             os.makedirs(CONFIG_DIR, exist_ok=True)
@@ -185,33 +216,37 @@ class ConfigManager:
                 yaml.safe_dump(merged, f)
             return True
         except FileNotFoundError:
-            print(f"File not found: {CONFIG_FULL_PATH}")
+            raise ConfigException(f"File not found: {CONFIG_FULL_PATH}")
         except PermissionError:
-            print(f"Permission denied: {CONFIG_FULL_PATH}")
+            raise ConfigException(f"Permission denied: {CONFIG_FULL_PATH}")
         except yaml.YAMLError as e:
-            print(f"YAML error while writing {CONFIG_FULL_PATH}: {e}")
+            raise ConfigException(f"YAML error while writing {CONFIG_FULL_PATH}: {e}")
         except OSError as e:
-            print(f"Error writing {CONFIG_FULL_PATH}: {e}")
+            raise ConfigException(f"Error writing {CONFIG_FULL_PATH}: {e}")
         return False
 
     @staticmethod
     def get_full_config() -> Dict[str, Any]:
+        """
+        Retourne la configuration fusionnée globale.
+        Returns:
+            dict: Configuration globale.
+        """
         if not os.path.exists(CONFIG_FULL_PATH):
             ConfigManager.update_full_config()
         try:
             with open(CONFIG_FULL_PATH, 'r', encoding='utf-8') as f:
                 return yaml.safe_load(f) or {}
         except FileNotFoundError:
-            print(f"File not found: {CONFIG_FULL_PATH}")
-            return {}
+            raise ConfigException(f"File not found: {CONFIG_FULL_PATH}")
         except PermissionError:
-            print(f"Permission denied: {CONFIG_FULL_PATH}")
-            return {}
+            raise ConfigException(f"Permission denied: {CONFIG_FULL_PATH}")
         except yaml.YAMLError as e:
-            print(f"YAML error in {CONFIG_FULL_PATH}: {e}")
-            return {}
+            raise ConfigException(f"YAML error in {CONFIG_FULL_PATH}: {e}")
 
-    # Monitoring skeleton (to be completed)
     @staticmethod
     def watch_config_changes():
+        """
+        Squelette pour la surveillance des changements de configuration.
+        """
         pass  # To implement with watchdog or polling
