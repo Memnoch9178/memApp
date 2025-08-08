@@ -6,3 +6,27 @@ __pycache__/
 *.pyd
 *.sqlite3
 *.log
+# Exclusions pour le dépôt : seuls les fichiers nécessaires sont suivis
+# Autoriser uniquement :
+!/src/
+!/src/core/
+!/src/core/config_manager/
+!/src/core/config_manager/manager.py
+!/src/core/config_manager/merge.py
+!/src/core/config_manager/reload.py
+!/src/core/config_manager/validation.py
+!/src/core/defaults.py
+!/src/core/schemas.py
+!/src/core/exceptions/
+!/src/core/exceptions/*.py
+!/src/utils/
+!/src/utils/*.py
+!/requirements.txt
+!/README.md
+!/docs/
+!/docs/CHANGELOG.md
+!/docs/PROJECT_MEMORY.md
+!/docs/adr/
+!/docs/adr/*.md
+!/src/config/
+!/src/config/**/*.yml
