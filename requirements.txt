@@ -1,0 +1,4 @@
+# Dépendances Python
+# Ajoutez ici les packages nécessaires, exemple :
+flask
+pytest
