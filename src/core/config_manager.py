@@ -40,25 +40,57 @@ class ConfigManager:
     def merge_configs() -> Dict[str, Any]:
         merged = {}
         for file in ConfigManager._find_config_files():
-            with open(file, 'r') as f:
-                data = yaml.safe_load(f) or {}
-                merged = ConfigManager._deep_merge_dicts(merged, data)
+            try:
+                with open(file, 'r', encoding='utf-8') as f:
+                    data = yaml.safe_load(f) or {}
+                    merged = ConfigManager._deep_merge_dicts(merged, data)
+            except FileNotFoundError:
+                print(f"File not found: {file}")
+            except PermissionError:
+                print(f"Permission denied when reading {file}")
+            except yaml.YAMLError as e:
+                print(f"YAML error in {file}: {e}")
+            except OSError as e:
+                print(f"Error reading {file}: {e}")
         return merged
 
     @staticmethod
-    def update_full_config():
+    def update_full_config() -> bool:
+        """Écrit le fichier de configuration fusionné sur le disque."""
         merged = ConfigManager.merge_configs()
-        with open(CONFIG_FULL_PATH, 'w') as f:
-            yaml.safe_dump(merged, f)
+        try:
+            os.makedirs(CONFIG_DIR, exist_ok=True)
+            with open(CONFIG_FULL_PATH, 'w', encoding='utf-8') as f:
+                yaml.safe_dump(merged, f)
+            return True
+        except FileNotFoundError:
+            print(f"File not found: {CONFIG_FULL_PATH}")
+        except PermissionError:
+            print(f"Permission denied: {CONFIG_FULL_PATH}")
+        except yaml.YAMLError as e:
+            print(f"YAML error while writing {CONFIG_FULL_PATH}: {e}")
+        except OSError as e:
+            print(f"Error writing {CONFIG_FULL_PATH}: {e}")
+        return False
 
     @staticmethod
     def get_full_config() -> Dict[str, Any]:
         if not os.path.exists(CONFIG_FULL_PATH):
             ConfigManager.update_full_config()
-        with open(CONFIG_FULL_PATH, 'r') as f:
-            return yaml.safe_load(f) or {}
+        try:
+            with open(CONFIG_FULL_PATH, 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f) or {}
+        except FileNotFoundError:
+            print(f"File not found: {CONFIG_FULL_PATH}")
+            return {}
+        except PermissionError:
+            print(f"Permission denied: {CONFIG_FULL_PATH}")
+            return {}
+        except yaml.YAMLError as e:
+            print(f"YAML error in {CONFIG_FULL_PATH}: {e}")
+            return {}
 
-    # Squelette de surveillance (à compléter)
+    # Monitoring skeleton (to be completed)
     @staticmethod
     def watch_config_changes():
-        pass  # À implémenter avec watchdog ou polling
+        pass  # To implement with watchdog or polling

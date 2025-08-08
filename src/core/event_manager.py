@@ -1,4 +1,4 @@
-# Squelette du gestionnaire événementiel
+# Event manager skeleton
 class EventManager:
     def __init__(self):
         pass
