@@ -13,3 +13,21 @@ Voir la documentation dans `docs/` pour les instructions détaillées.
 
 ## Configuration
 Copiez `.env.example` en `.env` et adaptez les variables selon votre environnement.
+
+## Convention de configuration YAML
+
+Chaque fichier de configuration doit regrouper les paramètres par section, selon le service ou module concerné :
+
+```yaml
+memApp:
+  watchdog:
+    enabled: true
+    interval: 5
+  database:
+    host: localhost
+    port: 5432
+```
+
+- Les sections racines correspondent au nom du service/module/plugin.
+- Tous les paramètres d’un élément sont regroupés dans sa section.
+- Cette convention s’applique à tous les fichiers `config.yml` du projet.
