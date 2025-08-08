@@ -6,6 +6,66 @@ CONFIG_DIR = os.path.join(os.path.dirname(__file__), '../config')
 CONFIG_FULL_PATH = os.path.join(CONFIG_DIR, 'config_full.yml')
 
 class ConfigManager:
+    @staticmethod
+    def get_service_config(service: str) -> Dict[str, Any]:
+        """Retourne la configuration d'un service/module spécifique."""
+        path = os.path.join(CONFIG_DIR, service, 'config.yml')
+        if not os.path.exists(path):
+            return {}
+        try:
+            with open(path, 'r', encoding='utf-8') as f:
+                return yaml.safe_load(f) or {}
+        except Exception as e:
+            print(f"Erreur lecture config {service}: {e}")
+            return {}
+
+    @staticmethod
+    def set_service_config_arg(service: str, section: str, key: str, value: Any) -> bool:
+        """Ajoute ou modifie un argument dans une section du fichier config individuel."""
+        path = os.path.join(CONFIG_DIR, service, 'config.yml')
+        config = ConfigManager.get_service_config(service)
+        if section not in config:
+            config[section] = {}
+        config[section][key] = value
+        try:
+            with open(path, 'w', encoding='utf-8') as f:
+                yaml.safe_dump(config, f)
+            return True
+        except Exception as e:
+            print(f"Erreur écriture config {service}: {e}")
+            return False
+
+    @staticmethod
+    def delete_service_config_arg(service: str, section: str, key: str) -> bool:
+        """Supprime un argument d'une section du fichier config individuel."""
+        path = os.path.join(CONFIG_DIR, service, 'config.yml')
+        config = ConfigManager.get_service_config(service)
+        if section in config and key in config[section]:
+            del config[section][key]
+            try:
+                with open(path, 'w', encoding='utf-8') as f:
+                    yaml.safe_dump(config, f)
+                return True
+            except Exception as e:
+                print(f"Erreur écriture config {service}: {e}")
+                return False
+        return False
+
+    @staticmethod
+    def delete_service_config_section(service: str, section: str) -> bool:
+        """Supprime une section entière du fichier config individuel."""
+        path = os.path.join(CONFIG_DIR, service, 'config.yml')
+        config = ConfigManager.get_service_config(service)
+        if section in config:
+            del config[section]
+            try:
+                with open(path, 'w', encoding='utf-8') as f:
+                    yaml.safe_dump(config, f)
+                return True
+            except Exception as e:
+                print(f"Erreur écriture config {service}: {e}")
+                return False
+        return False
     """
     Gestionnaire centralisé des configurations.
     - Fusionne tous les fichiers config.yml de src/config/*/
