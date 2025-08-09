@@ -1,0 +1,19 @@
+logs:
+  logger:
+    file: /var/log/memapp/app.log
+    level: INFO
+    rotation: daily
+memApp:
+  database:
+    host: localhost
+    password: change_me
+    port: 5432
+    user: memapp
+  watchdog:
+    enabled: true
+    interval: 5
+    log_path: /var/log/memapp/watchdog.log
+watchdog:
+  enabled: true
+  interval: 10
+  log_path: /var/log/memapp/watchdog.log

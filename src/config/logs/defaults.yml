@@ -1,0 +1,5 @@
+logs:
+  logger:
+    level: WARNING
+    file: /var/log/memapp/app.log
+    rotation: weekly

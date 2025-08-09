@@ -2,7 +2,7 @@
 # (à déplacer le contenu de l'ancien config_validation.py ici)
 
 from cerberus import Validator
-from core.exceptions import ConfigException
+from src.core.exceptions import ConfigException
 
 class ConfigValidation:
     """

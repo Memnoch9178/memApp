@@ -1,0 +1,20 @@
+logs:
+  logger:
+    level:
+      type: string
+      allowed:
+        - DEBUG
+        - INFO
+        - WARNING
+        - ERROR
+        - CRITICAL
+      required: true
+    file:
+      type: string
+      required: true
+    rotation:
+      type: string
+      allowed:
+        - daily
+        - weekly
+      required: true

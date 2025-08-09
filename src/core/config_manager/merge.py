@@ -1,7 +1,7 @@
 import os
 import yaml
 from typing import Dict, Any
-from core.exceptions import ConfigException
+from src.core.exceptions import ConfigException
 
 CONFIG_DIR = os.path.join(os.path.dirname(__file__), '../../config')
 

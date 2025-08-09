@@ -1,0 +1,27 @@
+{
+  "watchdog": {
+    "enabled": false,
+    "interval": 30,
+    "log_path": "/var/log/memapp/watchdog.log"
+  },
+  "memApp": {
+    "watchdog": {
+      "enabled": false,
+      "interval": 30,
+      "log_path": "/var/log/memapp/watchdog.log"
+    },
+    "database": {
+      "host": "localhost",
+      "port": 5432,
+      "user": "memapp",
+      "password": ""
+    }
+  },
+  "logs": {
+    "logger": {
+      "level": "WARNING",
+      "file": "/var/log/memapp/app.log",
+      "rotation": "weekly"
+    }
+  }
+}

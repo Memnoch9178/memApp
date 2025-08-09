@@ -1,0 +1,80 @@
+{
+  "watchdog": {
+    "enabled": {
+      "type": "boolean",
+      "required": true
+    },
+    "interval": {
+      "type": "integer",
+      "min": 1,
+      "required": true
+    },
+    "log_path": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "memApp": {
+    "watchdog": {
+      "enabled": {
+        "type": "boolean",
+        "required": true
+      },
+      "interval": {
+        "type": "integer",
+        "min": 1,
+        "required": true
+      },
+      "log_path": {
+        "type": "string",
+        "required": true
+      }
+    },
+    "database": {
+      "host": {
+        "type": "string",
+        "required": true
+      },
+      "port": {
+        "type": "integer",
+        "min": 1,
+        "required": true
+      },
+      "user": {
+        "type": "string",
+        "required": true
+      },
+      "password": {
+        "type": "string",
+        "required": false
+      }
+    }
+  },
+  "logs": {
+    "logger": {
+      "level": {
+        "type": "string",
+        "allowed": [
+          "DEBUG",
+          "INFO",
+          "WARNING",
+          "ERROR",
+          "CRITICAL"
+        ],
+        "required": true
+      },
+      "file": {
+        "type": "string",
+        "required": true
+      },
+      "rotation": {
+        "type": "string",
+        "allowed": [
+          "daily",
+          "weekly"
+        ],
+        "required": true
+      }
+    }
+  }
+}

@@ -1,4 +1,0 @@
-logger:
-  level: INFO
-  file: /var/log/memapp/app.log
-  rotation: daily

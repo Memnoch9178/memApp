@@ -30,3 +30,5 @@ class MemAppException(Exception):
         return self.message
     def __str__(self):
         return self.format_message()
+
+# Ce module doit contenir uniquement la base des exceptions et le formateur.

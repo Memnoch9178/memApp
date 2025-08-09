@@ -1,0 +1,4 @@
+watchdog:
+  enabled: false
+  interval: 30
+  log_path: /var/log/memapp/watchdog.log

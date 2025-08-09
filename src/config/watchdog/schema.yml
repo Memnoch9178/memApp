@@ -1,0 +1,11 @@
+watchdog:
+  enabled:
+    type: boolean
+    required: true
+  interval:
+    type: integer
+    min: 1
+    required: true
+  log_path:
+    type: string
+    required: true

@@ -6,3 +6,4 @@ class ExceptionTemplates:
     @classmethod
     def get(cls, name):
         return cls.TEMPLATES.get(name)
+# Ce module ne doit contenir que la gestion des templates d'affichage/erreur.

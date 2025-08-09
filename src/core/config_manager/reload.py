@@ -1,7 +1,7 @@
 import os
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
-from core.exceptions import ConfigException
+from src.core.exceptions import ConfigException
 
 CONFIG_DIR = os.path.join(os.path.dirname(__file__), '../../config')
 
